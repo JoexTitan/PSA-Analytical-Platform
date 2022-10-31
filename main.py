@@ -1,11 +1,12 @@
+import requests
 import streamlit as st
 import pandas as pd
-
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-
 import polarplot
+import seaborn as sns
 import songrecommendations
+import matplotlib.pyplot as plt
+from spotipy.oauth2 import SpotifyClientCredentials
 
 SPOTIPY_CLIENT_ID='a9c08768bf6f4d5083cdafbbf17c2277'
 SPOTIPY_CLIENT_SECRET='445ef713ee2b40d19c9c5d178f6b2380'
@@ -13,7 +14,9 @@ SPOTIPY_CLIENT_SECRET='445ef713ee2b40d19c9c5d178f6b2380'
 auth_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
-st.header('Spotify Song Analytics')
+st.header('Predictive Song Analysis')
+st.write("-------")
+st.subheader('What Is Your Favourite Song?')
 
 search_choices = ['Song', 'Artist', 'Album']
 search_selected = st.sidebar.selectbox("Menu - Search By: ", search_choices)
@@ -26,6 +29,7 @@ search_results = []
 tracks = []
 artists = []
 albums = []
+
 if search_keyword is not None and len(str(search_keyword)) > 0:
     if search_selected == 'Song':
         st.write("Choose Your Song From the Drop-Down Menu")
@@ -54,13 +58,13 @@ if search_keyword is not None and len(str(search_keyword)) > 0:
 selected_album = None
 selected_artist = None
 selected_track = None
+
 if search_selected == 'Song':
     selected_track = st.selectbox("Select Your Song: ", search_results)
 elif search_selected == 'Artist':
     selected_artist = st.selectbox("Select Your Artist: ", search_results)
 elif search_selected == 'Album':
     selected_album = st.selectbox("Select Your Album: ", search_results)
-
 
 if selected_track is not None and len(tracks) > 0:
     tracks_list = tracks['tracks']['items']
@@ -72,41 +76,175 @@ if selected_track is not None and len(tracks) > 0:
                 track_id = track['id']
                 track_album = track['album']['name']
                 img_album = track['album']['images'][1]['url']
-                songrecommendations.save_album_image(img_album, track_id)
+                songrecommendations.save_album_image(img_album, track_id)                
+                tracks = sp.search(q='track:'+ track['name'],type='track', limit=25)
+                
     selected_track_choice = None            
     if track_id is not None:
         image = songrecommendations.get_album_mage(track_id)
         st.image(image, use_column_width=True)
         track_choices = ['Song Features']
-
         track_features  = sp.audio_features(track_id) 
         df = pd.DataFrame(track_features, index=[0])
+        try:         
+            st.audio(tracks['tracks']['items'][0]['preview_url'], format="audio/mp3")  ##########
+        except:
+            pass
 
-        st.audio(tracks_list[0]['preview_url'], format="audio/mp3")  
         df2 = df.loc[:,['instrumentalness', 'liveness', 'acousticness', 'danceability', 'energy', 'speechiness', 'tempo', 'duration_ms', 'track_href']]
         df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
         st.dataframe(df2)
         polarplot.feature_plot(df_features)
-        st.header('Top Recommendations Based on Your Search')
+        
+        
+        
+########################################################################################        #################################
+        st.header('Analyzing Your Music Tastes ...')
+        
         token = songrecommendations.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
         similar_songs_json = songrecommendations.get_track_recommendations(track_id, token)
-        recommendation_list = similar_songs_json['tracks']
-        recommendation_list_df = pd.DataFrame(recommendation_list)
-        recommendation_list_df2 = recommendation_list_df
-        recommendation_df = recommendation_list_df[['name', 'popularity', 'duration_ms', 'explicit', 'href', 'available_markets']]
-        recommendation_list_df2['duration_min'] = (round(recommendation_list_df2['duration_ms'] / 1000, 0))/60
-        recommendation_list_df2["popularity_range"] = recommendation_list_df2["popularity"] - (recommendation_list_df2['popularity'].min() - 1)
-        recommendation_list_df2 = recommendation_list_df2[['name', 'popularity', 'duration_min', 'explicit', 'href', 'available_markets']]
         
-        st.dataframe(recommendation_list_df2)
-        songrecommendations.song_recommendation_vis(recommendation_df)
+        def trck_recc(seed_tracks,token):
+            limit = 100
+            recUrl = f"https://api.spotify.com/v1/recommendations?limit={limit}&seed_tracks={seed_tracks}"
+
+            headers = {
+                "Authorization": "Bearer " + token
+            }
+
+            res = requests.get(url=recUrl, headers=headers)
+            return res.json()
+        
+ # track_id
+        json_response2 = trck_recc(track_id,token)
+        
+        recc_track_result = []
+        
+        for i, item in enumerate(json_response2['tracks']):
+            track = item['album']
+            track_id = item['id']
+            track_name = item['name']
+            popularity = item['popularity']
+            explicit = item['explicit']
+            duration = ((item['duration_ms']/1000)/60)
+            preview_url = item['preview_url']
+            recc_track_result.append((track['artists'][0]['name'], track['name'], duration, track_name, track['release_date'], popularity, track_id, explicit, preview_url, i)) 
+            
+        recc_track_result_df = pd.DataFrame(recc_track_result, index=None, columns=('Artist', 'Song Name', 'Duration_mins', 'Album Name', 'Release Date', 'Popularity','Id','Explicit', 'Preview_url','item'))
+
+        audio_features_df = pd.DataFrame()
+        for id in recc_track_result_df['Id'].iteritems():
+            track_id = id[1]
+            audio_features = sp.audio_features(track_id)
+            local_features = pd.DataFrame(audio_features, index=[0])
+            audio_features_df = audio_features_df.append(local_features)      
+                
+        our_final_df = recc_track_result_df.merge(audio_features_df, left_on="Id", right_on="id")
+        st.dataframe(our_final_df)
         
         
-        #######   
+        corr = our_final_df[['Release Date', 'Popularity', 'Explicit', 'Duration_mins', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness',
+            'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']].corr()
+        plt.figure(figsize=(20,13))
+        fig = sns.heatmap(corr, annot = True, cmap="icefire_r") # copper_r, icefire,icefire_r
+     
         
+        st.pyplot(plt) 
+        st.write(corr) 
+     
+        
+        def bar_graphs():
+            f1 = plt.figure(figsize=(15,13))      
+            plt.subplot(331)
+            sns.histplot(data=our_final_df, x="danceability",color='navy', kde = True, hue='Explicit', legend=False)
+            plt.subplot(332)
+            sns.histplot(data=our_final_df, x="loudness",color='navy', kde = True, hue='Explicit', legend=False)
+            plt.subplot(333)
+            sns.histplot(data=our_final_df, x="energy",color='navy', kde = True, hue='Explicit', legend=False)
+            plt.subplot(334)
+            sns.histplot(data=our_final_df, x="acousticness",color='navy', kde = True, hue='Explicit', legend=False)
+            plt.subplot(335)
+            sns.histplot(data=our_final_df, x="valence",color='navy', kde = True, hue='Explicit', legend=False)
+            plt.subplot(336)
+            sns.histplot(data=our_final_df, x="Popularity",color='navy', kde = True, hue='Explicit', legend=False)
+            
+            f2 = plt.figure(figsize=(15,13))   
+            plt.subplot(331)
+            sns.histplot(data=our_final_df, x="tempo",color='navy', kde = True, hue='Explicit', legend=False)
+            plt.subplot(332)
+            sns.histplot(data=our_final_df, x="Duration_mins",color='navy', kde = True, hue='Explicit', legend=False)
+            plt.subplot(333)
+            sns.histplot(data=our_final_df, x="key",color='navy', kde = True, hue='Explicit', legend=False)
+          
+            st.pyplot(f1)  
+            st.pyplot(f2) 
+        
+        bar_graphs()
+        
+        
+        def hist_graphs():
+            f1 = plt.figure(figsize=(15,13))      
+            plt.subplot(331)
+            sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(332)
+            sns.histplot(data=our_final_df, x="valence", y="danceability", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(333)
+            sns.histplot(data=our_final_df, x="acousticness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(334)
+            sns.histplot(data=our_final_df, x="acousticness", y="loudness", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(335)
+            sns.histplot(data=our_final_df, x="Duration_mins", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(336)
+            sns.histplot(data=our_final_df, x="Duration_mins", y="key", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            
+            #f2 = plt.figure(figsize=(15,13))   
+            #plt.subplot(331)
+            #sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            #plt.subplot(332)
+            #sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            #plt.subplot(333)
+            #sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+          
+            st.pyplot(f1)  
+            #st.pyplot(f2) 
+        
+        hist_graphs()
+
+        def hist_graphs():
+            f1 = plt.figure(figsize=(15,13))      
+            plt.subplot(331)
+            sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(332)
+            sns.histplot(data=our_final_df, x="valence", y="danceability", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(333)
+            sns.histplot(data=our_final_df, x="acousticness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(334)
+            sns.histplot(data=our_final_df, x="acousticness", y="loudness", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(335)
+            sns.histplot(data=our_final_df, x="Duration_mins", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            plt.subplot(336)
+            sns.histplot(data=our_final_df, x="Duration_mins", y="key", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
+            
+            st.pyplot(f1) 
+
+        
+        #fig1 = plt.figure()
+        #sns.scatterplot(x = "danceability", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+        
+        #fig2 = sns.scatterplot(x = "Duration_mins", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+        #fig3 = sns.scatterplot(x = "loudness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+        #fig4 = sns.scatterplot(x = "tempo", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+
+        #st.pyplot(fig1)
+        #st.pyplot(fig2)
+        #st.pyplot(fig3)
+        #st.pyplot(fig4)
+           
+########################################################################################      
+
         st.markdown(
         """
-        Audio Features Documentation:
+        Audio Feature Documentation:
         - Acousticness: the confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence that the track is acoustic.
         
         - Danceability: describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.
@@ -123,6 +261,43 @@ if selected_track is not None and len(tracks) > 0:
         
         """
         )
+        
+        
+        def popularity_graphs():
+            f1 = plt.figure(figsize=(15,13))      
+            plt.subplot(331)
+            sns.scatterplot(x = "danceability", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(332)
+            sns.scatterplot(x = "Duration_mins", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(334)
+            sns.scatterplot(x = "loudness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(335)
+            sns.scatterplot(x = "tempo", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+
+            
+            f2 = plt.figure(figsize=(15,13))   
+            plt.subplot(331)
+            sns.scatterplot(x = "key", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(332)
+            sns.scatterplot(x = "liveness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(334)
+            sns.scatterplot(x = "energy", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            #plt.subplot(332)
+            #sns.scatterplot(x = "Release Date", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(335)
+            sns.scatterplot(x = "speechiness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(337)
+            sns.scatterplot(x = "acousticness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            #plt.subplot(335)
+            #sns.scatterplot(x = "instrumentalness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
+            plt.subplot(338)
+            sns.scatterplot(x = "valence", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)  
+            
+            st.pyplot(f1)  
+            st.pyplot(f2) 
+                    
+        popularity_graphs()
+        
   
         Nlst = []
         for i in df['id']:
@@ -134,24 +309,43 @@ if selected_track is not None and len(tracks) > 0:
         for songs in similar_songs_json['tracks']:
             Nlst3.append(songs['preview_url'])
             
-        st.header('Predicting Your Next Favorite Song')  
+        
+        st.header('Top Recommendations Based on Your Search')
+        token = songrecommendations.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
+        similar_songs_json = songrecommendations.get_track_recommendations(track_id, token)
+        recommendation_list = similar_songs_json['tracks']
+        recommendation_list_df = pd.DataFrame(recommendation_list)
+        recommendation_list_df2 = recommendation_list_df
+        recommendation_df = recommendation_list_df[['name', 'popularity', 'duration_ms', 'explicit', 'href', 'available_markets']]
+        recommendation_list_df2['duration_min'] = (round(recommendation_list_df2['duration_ms'] / 1000, 0))/60
+        recommendation_list_df2["popularity_range"] = recommendation_list_df2["popularity"] - (recommendation_list_df2['popularity'].min() - 1)
+        recommendation_list_df2 = recommendation_list_df2[['name', 'popularity', 'duration_min', 'explicit', 'href', 'available_markets']]
+        st.dataframe(recommendation_list_df2)
+        songrecommendations.song_recommendation_vis(recommendation_df)
+
+            
+        st.subheader(f'Your Next Favourite Song is: {Nlst2[0]}')  
     
         track_audio_specs2  = sp.audio_features(Nlst[0])
         df5 = pd.DataFrame(track_audio_specs2, index=[0])
         df_audio_specs2 = df5.loc[:,['danceability', 'energy', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence']]
-        polarplot.feature_plot(df_audio_specs2) 
+        polarplot.feature_plot2(df_features,df_audio_specs2) 
         
         try:
             for i in range(len(Nlst)):
                 if Nlst3[i] != False and Nlst3[i] != '' and Nlst3[i] !=None:
-                    st.text(Nlst2[i])
                     st.text(Nlst[i])
                     st.audio(Nlst3[i], format="audio/mp3") 
+            
         except:
             st.text('Bash Out')
             st.text('5wZK0hHduZpjWWoT0rq9p4')
             st.audio('5wZK0hHduZpjWWoT0rq9p4', format="audio/mp3") 
-      
+ 
+        #st.header('Current Trends & Discovery')   
+################################################################################################
+
+
     else:
         st.write("Please select a track from the list")       
 

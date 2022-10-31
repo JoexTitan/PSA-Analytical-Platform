@@ -16,10 +16,11 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 st.header('Predictive Song Analysis')
 st.write("-------")
-st.subheader('What Is Your Favourite Song?')
 
 search_choices = ['Song', 'Artist', 'Album']
 search_selected = st.sidebar.selectbox("Menu - Search By: ", search_choices)
+
+st.subheader(f'What Is Your Favourite {search_selected}?')
 
 search_keyword = st.text_input(search_selected + " Search Engine")
 button_clicked = st.button("SEARCH")
@@ -87,7 +88,7 @@ if selected_track is not None and len(tracks) > 0:
         track_features  = sp.audio_features(track_id) 
         df = pd.DataFrame(track_features, index=[0])
         try:         
-            st.audio(tracks['tracks']['items'][0]['preview_url'], format="audio/mp3")  ##########
+            st.audio(tracks['tracks']['items'][0]['preview_url'], format="audio/mp3")
         except:
             pass
 
@@ -95,10 +96,7 @@ if selected_track is not None and len(tracks) > 0:
         df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
         st.dataframe(df2)
         polarplot.feature_plot(df_features)
-        
-        
-        
-########################################################################################        #################################
+
         st.header('Analyzing Your Music Tastes ...')
         
         token = songrecommendations.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
@@ -114,8 +112,7 @@ if selected_track is not None and len(tracks) > 0:
 
             res = requests.get(url=recUrl, headers=headers)
             return res.json()
-        
- # track_id
+
         json_response2 = trck_recc(track_id,token)
         
         recc_track_result = []
@@ -146,13 +143,11 @@ if selected_track is not None and len(tracks) > 0:
         corr = our_final_df[['Release Date', 'Popularity', 'Explicit', 'Duration_mins', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness',
             'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']].corr()
         plt.figure(figsize=(20,13))
-        fig = sns.heatmap(corr, annot = True, cmap="icefire_r") # copper_r, icefire,icefire_r
-     
+        fig = sns.heatmap(corr, annot = True, cmap="icefire_r") 
         
         st.pyplot(plt) 
         st.write(corr) 
      
-        
         def bar_graphs():
             f1 = plt.figure(figsize=(15,13))      
             plt.subplot(331)
@@ -167,7 +162,6 @@ if selected_track is not None and len(tracks) > 0:
             sns.histplot(data=our_final_df, x="valence",color='navy', kde = True, hue='Explicit', legend=False)
             plt.subplot(336)
             sns.histplot(data=our_final_df, x="Popularity",color='navy', kde = True, hue='Explicit', legend=False)
-            
             f2 = plt.figure(figsize=(15,13))   
             plt.subplot(331)
             sns.histplot(data=our_final_df, x="tempo",color='navy', kde = True, hue='Explicit', legend=False)
@@ -175,13 +169,11 @@ if selected_track is not None and len(tracks) > 0:
             sns.histplot(data=our_final_df, x="Duration_mins",color='navy', kde = True, hue='Explicit', legend=False)
             plt.subplot(333)
             sns.histplot(data=our_final_df, x="key",color='navy', kde = True, hue='Explicit', legend=False)
-          
             st.pyplot(f1)  
             st.pyplot(f2) 
         
         bar_graphs()
         
-        
         def hist_graphs():
             f1 = plt.figure(figsize=(15,13))      
             plt.subplot(331)
@@ -195,52 +187,10 @@ if selected_track is not None and len(tracks) > 0:
             plt.subplot(335)
             sns.histplot(data=our_final_df, x="Duration_mins", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
             plt.subplot(336)
-            sns.histplot(data=our_final_df, x="Duration_mins", y="key", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            
-            #f2 = plt.figure(figsize=(15,13))   
-            #plt.subplot(331)
-            #sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            #plt.subplot(332)
-            #sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            #plt.subplot(333)
-            #sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-          
+            sns.histplot(data=our_final_df, x="Duration_mins", y="key", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)     
             st.pyplot(f1)  
-            #st.pyplot(f2) 
         
         hist_graphs()
-
-        def hist_graphs():
-            f1 = plt.figure(figsize=(15,13))      
-            plt.subplot(331)
-            sns.histplot(data=our_final_df, x="loudness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            plt.subplot(332)
-            sns.histplot(data=our_final_df, x="valence", y="danceability", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            plt.subplot(333)
-            sns.histplot(data=our_final_df, x="acousticness", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            plt.subplot(334)
-            sns.histplot(data=our_final_df, x="acousticness", y="loudness", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            plt.subplot(335)
-            sns.histplot(data=our_final_df, x="Duration_mins", y="energy", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            plt.subplot(336)
-            sns.histplot(data=our_final_df, x="Duration_mins", y="key", bins=15, discrete=(False, False), log_scale=(False, False), thresh=None,)
-            
-            st.pyplot(f1) 
-
-        
-        #fig1 = plt.figure()
-        #sns.scatterplot(x = "danceability", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-        
-        #fig2 = sns.scatterplot(x = "Duration_mins", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-        #fig3 = sns.scatterplot(x = "loudness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-        #fig4 = sns.scatterplot(x = "tempo", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-
-        #st.pyplot(fig1)
-        #st.pyplot(fig2)
-        #st.pyplot(fig3)
-        #st.pyplot(fig4)
-           
-########################################################################################      
 
         st.markdown(
         """
@@ -251,54 +201,38 @@ if selected_track is not None and len(tracks) > 0:
         
         - Instrumentalness: predicts whether a track contains no vocals. "Ooh" and "aah" sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly "vocal". The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0.
         
-        - Speechiness: detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks.
-        
-        - Valence: measures from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry).
-        
+        - Key: the key the track is in. Integers map to pitches using standard Pitch Class notation. E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on. If no key was detected, the value is -1.
+                
         - Liveness: detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live.
         
         - Energy: measures from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy.
         
         """
         )
-        
-        
-        def popularity_graphs():
-            f1 = plt.figure(figsize=(15,13))      
-            plt.subplot(331)
-            sns.scatterplot(x = "danceability", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(332)
-            sns.scatterplot(x = "Duration_mins", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(334)
-            sns.scatterplot(x = "loudness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(335)
-            sns.scatterplot(x = "tempo", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
 
-            
-            f2 = plt.figure(figsize=(15,13))   
-            plt.subplot(331)
-            sns.scatterplot(x = "key", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(332)
-            sns.scatterplot(x = "liveness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(334)
-            sns.scatterplot(x = "energy", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            #plt.subplot(332)
-            #sns.scatterplot(x = "Release Date", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(335)
-            sns.scatterplot(x = "speechiness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(337)
-            sns.scatterplot(x = "acousticness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            #plt.subplot(335)
-            #sns.scatterplot(x = "instrumentalness", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)
-            plt.subplot(338)
-            sns.scatterplot(x = "valence", y = "Popularity", data = our_final_df, size='Popularity', hue='Popularity', sizes=(10,200), legend=False)  
-            
-            st.pyplot(f1)  
-            st.pyplot(f2) 
-                    
-        popularity_graphs()
+        colls1,colls2,colls3 = st.columns(3)
+        colls4,colls5,colls6 = st.columns(3)
+        colls7,colls8,colls9 = st.columns(3)
+        colls10,colls11,colls12 = st.columns(3)
         
-  
+        colls1.pyplot(sns.jointplot(data=our_final_df, x="danceability", y="Popularity",kind="reg", color='#03051A'))
+        colls7.pyplot(sns.jointplot(data=our_final_df, x="acousticness", y="tempo", kind="kde", color='#03051A', cmap='rocket', fill=True, thresh=0))
+
+        colls2.pyplot(sns.jointplot(data=our_final_df, x="Duration_mins", y="Popularity",kind="reg", color='#03051A'))
+        colls8.pyplot(sns.jointplot(data=our_final_df, x="energy", y="loudness", kind="kde", color='#03051A', cmap='rocket', fill=True, thresh=0))
+
+        colls3.pyplot(sns.jointplot(data=our_final_df, x="loudness", y="Popularity",kind="reg", color='#03051A'))
+        colls9.pyplot(sns.jointplot(data=our_final_df, x="speechiness", y="Explicit", kind="kde", color='#03051A', cmap='rocket', fill=True, thresh=0))
+
+        colls4.pyplot(sns.jointplot(data=our_final_df, x="tempo", y="Popularity",kind="reg", color='#03051A'))
+        colls10.pyplot(sns.jointplot(data=our_final_df, x="loudness", y="valence", kind="kde", color='#03051A', cmap='rocket', fill=True, thresh=0))
+
+        colls5.pyplot(sns.jointplot(data=our_final_df, x="energy", y="Popularity",kind="reg", color='#03051A'))
+        colls11.pyplot(sns.jointplot(data=our_final_df, x="instrumentalness", y="Popularity", kind="kde", color='#03051A', cmap='rocket', fill=True, thresh=0))
+
+        colls6.pyplot(sns.jointplot(data=our_final_df, x="speechiness", y="Popularity",kind="reg", color='#03051A'))      
+        colls12.pyplot(sns.jointplot(data=our_final_df, x="danceability", y="speechiness", kind="kde", color='#03051A', cmap='rocket', fill=True, thresh=0))
+
         Nlst = []
         for i in df['id']:
             Nlst.append(i)
@@ -309,7 +243,23 @@ if selected_track is not None and len(tracks) > 0:
         for songs in similar_songs_json['tracks']:
             Nlst3.append(songs['preview_url'])
             
+    
+        st.markdown(
+        """
+        - Loudness: the overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typically range between -60 and 0 db.
         
+        - Tempo: the estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration.
+        
+        - Time Signature: an estimated time signature. The time signature (meter) is a notational convention to specify how many beats are in each bar (or measure). The time signature ranges from 3 to 7 indicating time signatures of "3/4", to "7/4".
+        
+        - Mode: mode indicates the modality (major or minor) of a track, the type of scale from which its melodic content is derived. Major is represented by 1 and minor is 0.
+        
+        - Speechiness: detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks.
+        
+        - Valence: measures from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry).
+        """
+        )
+    
         st.header('Top Recommendations Based on Your Search')
         token = songrecommendations.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
         similar_songs_json = songrecommendations.get_track_recommendations(track_id, token)
@@ -322,9 +272,8 @@ if selected_track is not None and len(tracks) > 0:
         recommendation_list_df2 = recommendation_list_df2[['name', 'popularity', 'duration_min', 'explicit', 'href', 'available_markets']]
         st.dataframe(recommendation_list_df2)
         songrecommendations.song_recommendation_vis(recommendation_df)
-
-            
-        st.subheader(f'Your Next Favourite Song is: {Nlst2[0]}')  
+ 
+        st.subheader(f'Your Next Favourite Song: {Nlst2[0]}')  
     
         track_audio_specs2  = sp.audio_features(Nlst[0])
         df5 = pd.DataFrame(track_audio_specs2, index=[0])
@@ -341,10 +290,6 @@ if selected_track is not None and len(tracks) > 0:
             st.text('Bash Out')
             st.text('5wZK0hHduZpjWWoT0rq9p4')
             st.audio('5wZK0hHduZpjWWoT0rq9p4', format="audio/mp3") 
- 
-        #st.header('Current Trends & Discovery')   
-################################################################################################
-
 
     else:
         st.write("Please select a track from the list")       
@@ -379,8 +324,7 @@ elif selected_album is not None and len(albums) > 0:
                     col11.write(df_tracks_min['preview_url'][idx])  
                     with col12:   
                         st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")                            
-                        
-                        
+                                      
 if selected_artist is not None and len(artists) > 0:
     artists_list = artists['artists']['items']
     artist_id = None

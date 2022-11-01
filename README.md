@@ -10,7 +10,7 @@ There is plenty of artists, songs, and genres that make it very difficult to fin
 
 ## Screenshots
 
-![App Screenshot](https://drive.google.com/file/d/1CRzQZG07slX2HM6pt0TFu4OoVw8OzuGb/view?usp=sharing)
+![App Screenshot](https://ak.picdn.net/shutterstock/videos/1033518728/thumb/8.jpg?ip=x480)
 
 
 ## PSA Demo (YouTube)

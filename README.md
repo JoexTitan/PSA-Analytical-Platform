@@ -9,8 +9,8 @@ There is plenty of artists, songs, and genres that make it very difficult to fin
 
 
 ## Screenshots
-<img src="img/PSA1.png">
-<img src="img/PSA2.png">
+<img src="img/PSA1.JPG">
+<img src="img/PSA2.JPG">
 ![](img/PSA1.png)
 ![](img/PSA2.png)
 

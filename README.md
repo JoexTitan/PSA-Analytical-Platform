@@ -4,7 +4,7 @@
 
 # Predictive Song Analysis Tool
 
-This application was built to help the public in the process of audio playlist construction. 
+This application was built to help the public in the process of song playlist construction. 
 There is plenty of artists, songs, and genres that make it very difficult to find songs according to your liking and that is where we come in.  
 
 

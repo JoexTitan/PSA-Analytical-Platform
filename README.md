@@ -13,7 +13,7 @@ There is plenty of artists, songs, and genres that make it very difficult to fin
 <img src="img/PSA2.JPG">
 
 
-## App Demo for the Predictive Song Analysis Tool
+## App Demo (Walkthrough Available on YouTube)
 
 https://joextitan-psa-analytical-platform-main-61nvr2.streamlitapp.com/
 

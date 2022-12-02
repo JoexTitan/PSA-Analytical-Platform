@@ -13,11 +13,6 @@ There is plenty of artists, songs, and genres that make it very difficult to fin
 <img src="img/PSA2.JPG">
 
 
-## PSA Demo (YouTube)
-
-You can familiarize yourself with the PSA tool here: https://youtu.be/BO4qAdmjxTw
-
-
 ## PSA Tool App
 
 https://joextitan-psa-analytical-platform-main-61nvr2.streamlitapp.com/

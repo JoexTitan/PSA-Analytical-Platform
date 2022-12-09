@@ -260,7 +260,7 @@ if selected_track is not None and len(tracks) > 0:
         """
         )
     
-        st.header('Top Recommendations Based on Your Search')
+        st.header('Recommendations Based on Your Search')
         token = songrecommendations.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
         similar_songs_json = songrecommendations.get_track_recommendations(track_id, token)
         recommendation_list = similar_songs_json['tracks']

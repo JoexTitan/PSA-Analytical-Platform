@@ -9,6 +9,7 @@ There is plenty of artists, songs, and genres that make it very difficult to fin
 
 
 ## App Demo Screenshots
+<img src="img/PSA0.JPG">
 <img src="img/PSA1.JPG">
 <img src="img/PSA1.1.JPG">
 <img src="img/PSA1.2.JPG">

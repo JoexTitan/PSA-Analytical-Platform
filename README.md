@@ -1,5 +1,5 @@
+<img src="img/spotify_logo.JPG">
 
-![Logo](https://cdn.wallpapersafari.com/57/89/CJYAEO.jpg)
 
 
 # Predictive Song Analysis Tool

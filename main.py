@@ -8,8 +8,8 @@ import songrecommendations
 import matplotlib.pyplot as plt
 from spotipy.oauth2 import SpotifyClientCredentials
 
-SPOTIPY_CLIENT_ID='a9c08768bf6f4d5083cdafbbf17c2277'
-SPOTIPY_CLIENT_SECRET='445ef713ee2b40d19c9c5d178f6b2380'
+SPOTIPY_CLIENT_ID='SPOTIPY_CLIENT_ID'
+SPOTIPY_CLIENT_SECRET='SPOTIPY_CLIENT_SECRET'
 
 auth_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(auth_manager=auth_manager)

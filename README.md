@@ -5,7 +5,7 @@
 This application was built to help the public in the process of song playlist construction. 
 There is plenty of artists, songs, and genres that make it very difficult to find songs according to your liking and that is where we come in.  
 
-## Live App Demo & YouTube Walkthrough
+## You can find a walkthrough of the app on YouTube
 https://www.youtube.com/watch?v=BO4qAdmjxTw
 
 ## App Demo Screenshots
@@ -15,7 +15,6 @@ https://www.youtube.com/watch?v=BO4qAdmjxTw
 <img src="img/PSA1.2.JPG">
 <img src="img/PSA2.JPG">
 
-## Live App Demo
-https://joextitan-psa-analytical-platform-main-61nvr2.streamlitapp.com/
-
+## App Demo (Walkthrough Available on YouTube)
+https://www.youtube.com/watch?v=BO4qAdmjxTw
 
